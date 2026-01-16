@@ -9,9 +9,11 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "keyv-file": "^5.3.3",
     "next": "16.1.1",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "vrchat": "^2.20.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
