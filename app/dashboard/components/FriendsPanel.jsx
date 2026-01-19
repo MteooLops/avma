@@ -7,10 +7,9 @@ export default function FriendsPanel({ friends, selectedFriend, setSelectedFrien
     const webListRef = useRef(null);
     const offlineListRef = useRef(null);
 
-    const webFriends = friends.filter((friend) => friend?.platform === 'web' || String(friend?.location || '').toLowerCase() === 'web');
-    const offlineFriends = friends.filter((friend) => String(friend?.location || '').toLowerCase() === 'offline' || !friend?.location);
-    const onlineFriends = friends.filter((friend) => !webFriends.includes(friend) && !offlineFriends.includes(friend));
-    const totalCount = friends.length;
+    const onlineFriends = friends?.onlineFriends || [];
+    const webFriends = friends?.webFriends || [];
+    const offlineFriends = friends?.offlineFriends || [];
 
     const handleSelectFriend = (f) => {
         setSelectedFriend(f.id);
@@ -38,10 +37,12 @@ export default function FriendsPanel({ friends, selectedFriend, setSelectedFrien
                         <div className="font-semibold">Contacts</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                        <div className="small muted">Playing: {onlineFriends.length}</div>
-                        <div className="small muted">Web: {webFriends.length}</div>
-                        <div className="small muted">Offline: {offlineFriends.length}</div>
-                        <div className="small muted">Total: {totalCount}</div>
+                        {onlineFriends.length >= 0 && (<div className="small muted">Playing: {onlineFriends.length}</div>)}
+                        {webFriends.length >= 0 && (<div className="small muted">Web: {webFriends.length}</div>)}
+                        {offlineFriends.length >= 0 && (<div className="small muted">Offline: {offlineFriends.length}</div>)}
+                        {(friends?.totalCount ?? onlineFriends.length + offlineFriends.length) >= 0 && (
+                            <div className="small muted">Total: {friends?.totalCount ?? onlineFriends.length + offlineFriends.length}</div>
+                        )}
                     </div>
                 </div>
 

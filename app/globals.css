@@ -1,25 +1,167 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #07080a;
+  --surface: #0e1113;
+  --surface-2: #0f1314;
+  --text: #dfe6eb;
+  --muted: #8b96a1;
+  --border: #0d1113;
+  --accent: #5b7289;
+  /* muted slate blue */
+  --accent-2: #56606a;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
 }
 
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: radial-gradient(800px 300px at 12% 12%, rgba(91, 114, 137, 0.02), transparent), var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, system-ui, -apple-system;
 }
 
-input {
-  border: solid 1px black;
+/* Utilities for subtle motion (disabled animations) */
+.fade-in {
+  animation: none;
 }
 
-button {
-  border: solid 1px black;
+/* Cards */
+.card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent), var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-md);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
 }
 
-.header {
-  border: 1px solid black;
-  margin-bottom: 20px;
+/* Inputs & buttons */
+.input {
+  background: var(--surface-2);
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  transition: box-shadow .18s ease, border-color .12s ease;
+}
 
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 6px 20px rgba(91, 114, 137, 0.05);
+}
+
+.btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  color: var(--text);
+  border-radius: 10px;
+  transition: transform .06s ease, box-shadow .08s ease, background-color .12s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, rgba(91, 114, 137, 0.03), rgba(86, 96, 106, 0.02));
+  border: 1px solid rgba(86, 96, 106, 0.12);
+  color: var(--text);
+}
+
+.btn:hover {
+  filter: brightness(1.03);
+}
+
+/* Avatars and status */
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.avatar-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35);
+}
+
+.status-online {
+  background: #2f8f6a;
+}
+
+.status-away {
+  background: #b8843e;
+}
+
+.status-offline {
+  background: #55606a;
+}
+
+/* Sidebar helpers */
+.sidebar {
+  min-width: 72px;
+}
+
+.sidebar .nav-item {
+  padding: 10px;
+  border-radius: 10px;
+  transition: background .12s ease, transform .06s ease;
+}
+
+.sidebar .nav-item:hover {
+  background: rgba(255, 255, 255, 0.01);
+  transform: translateY(-2px);
+}
+
+/* Friends collapsed avatar column */
+.friends-collapsed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  padding-top: 16px;
+}
+
+.friends-collapsed .avatar-sm {
+  cursor: pointer;
+}
+
+/* Small helpers */
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 0.85rem;
+}
+
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Header glass */
+.header-glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.005));
+  backdrop-filter: blur(6px);
 }

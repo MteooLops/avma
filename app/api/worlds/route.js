@@ -18,8 +18,10 @@ export async function GET(req) {
 
         // Busca mundos por nombre o descripción
         const worldsResponse = await vrchat.searchWorlds({
-            search: search,
-            sort: "name",
+            query: {
+                search: search,
+                sort: 'relevance'
+            }
         });
         const worlds = worldsResponse?.data || worldsResponse || [];
 

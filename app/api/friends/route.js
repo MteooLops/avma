@@ -4,22 +4,29 @@ import { getVRChatInstance, getVRChatClient } from "../auth/route";
 
 export async function GET(req) {
     try {
-        // Usa instancia en memoria si existe; si no, crea una con sesión persistente
         const vrchat = getVRChatInstance() || getVRChatClient();
 
-        // Obtiene la lista de amigos del usuario autenticado
-        const friendsResponse = await vrchat.getFriends();
-        const friends = friendsResponse?.data || friendsResponse || [];
+        let friendsResponse = await vrchat.getFriends();
+        let friends = friendsResponse?.data || friendsResponse || [];
 
-        return NextResponse.json({
-            success: true,
-            friends: friends
-        });
+
+        // TODO: Deslimitar el numero de amigos que salen de resultado, por defecto esta limitado a 100
+        let offlineFriendsResponse = await vrchat.getFriends({
+            query: {
+                n: inf,
+                offline: true,
+            }
+        })
+        let offlineFriends = offlineFriendsResponse?.data || offlineFriendsResponse || [];
+
+        let webFriends = friends.filter(friend => friend.platform == 'web')
+        let onlineFriends = friends.filter(friend => friend.location != 'offline')
+
+        let totalCount = friends.length + offlineFriends.length
+
+        return NextResponse.json({ success: true, onlineFriends, webFriends, offlineFriends, totalCount });
     } catch (error) {
         console.error("Get friends error:", error);
-        return NextResponse.json(
-            { error: error?.message || "Failed to fetch friends" },
-            { status: 400 }
-        );
+        return NextResponse.json({ error: error?.message || "Failed to fetch friends" }, { status: 400 });
     }
 }

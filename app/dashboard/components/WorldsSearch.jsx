@@ -1,7 +1,41 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 
-export default function WorldsSearch({ searchTerm, setSearchTerm, onSearch, worlds = [], loading }) {
+export default function WorldsSearch() {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [worlds, setWorlds] = useState([]);
+    const [status, setStatus] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleSearch = async () => {
+        if (!searchTerm.trim()) {
+            setStatus('Enter a search term');
+            setWorlds([]);
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setStatus('Searching...');
+            const res = await fetch(`/api/worlds?search=${encodeURIComponent(searchTerm)}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+            const text = await res.text();
+            const data = JSON.parse(text || '{}');
+            if (res.ok) {
+                const found = data.worlds || [];
+                setWorlds(found);
+                setStatus(`Worlds found: ${found.length}`);
+            } else {
+                setWorlds([]);
+                setStatus(data.error || 'Error searching worlds');
+            }
+        } catch (error) {
+            setWorlds([]);
+            setStatus('Error searching worlds: ' + (error?.message || error));
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="card p-4 fade-in">
             <h2 className="font-semibold">Search worlds</h2>
@@ -9,9 +43,19 @@ export default function WorldsSearch({ searchTerm, setSearchTerm, onSearch, worl
 
             <div className="mt-3 space-y-3">
                 <div className="grid grid-cols-[1fr_auto] gap-2">
-                    <input className="input px-3 py-2 text-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="World name" />
-                    <button className="btn" onClick={onSearch} disabled={loading}>{loading ? 'Searching...' : 'Search'}</button>
+                    <input
+                        className="input px-3 py-2 text-sm"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="World name"
+                        aria-label="World name"
+                    />
+                    <button className="btn" onClick={handleSearch} disabled={loading} aria-label="Search worlds">
+                        {loading ? 'Searching...' : 'Search'}
+                    </button>
                 </div>
+
+                {status && <div className="small muted">{status}</div>}
 
                 <div className="space-y-3">
                     {worlds.length > 0 ? (
