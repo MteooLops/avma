@@ -114,34 +114,40 @@ export default function LoginPage() {
     };
 
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial" }}>
-            <main>
+        <div className="min-h-screen flex items-center justify-center text-gray-200 p-4">
+            <main className="w-full max-w-md">
                 {status && (
-                    <div style={{ marginBottom: "12px", padding: "10px", background: "#eef2ff", border: "1px solid #cfd8ff" }}>
+                    <div className="card px-4 py-3 mb-6 text-sm muted fade-in">
                         {status}
                     </div>
                 )}
 
                 {!require2fa && (
-                    <div style={{ border: "1px solid #ccc", padding: "20px", marginBottom: "20px", maxWidth: "400px", margin: "50px auto" }}>
-                        <h2>VRChat Login</h2>
-                        <p>Enter your VRChat credentials</p>
-                        <input
-                            type="text"
-                            ref={username}
-                            placeholder="Email / Username"
-                            style={{ display: "block", marginBottom: "10px", padding: "8px", width: "100%", boxSizing: "border-box" }}
-                        />
-                        <input
-                            type="password"
-                            ref={password}
-                            placeholder="Password"
-                            style={{ display: "block", marginBottom: "10px", padding: "8px", width: "100%", boxSizing: "border-box" }}
-                        />
+                    <div className="card p-8 space-y-6 fade-in">
+                        <div>
+                            <h1 className="text-2xl font-semibold mb-2">VRChat Login</h1>
+                            <p className="text-sm muted">Enter your VRChat credentials</p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <input
+                                type="text"
+                                ref={username}
+                                placeholder="Email / Username"
+                                className="input w-full px-4 py-2 text-sm"
+                            />
+                            <input
+                                type="password"
+                                ref={password}
+                                placeholder="Password"
+                                className="input w-full px-4 py-2 text-sm"
+                            />
+                        </div>
+
                         <button
                             onClick={handleLogin}
                             disabled={loading}
-                            style={{ padding: "10px 20px", cursor: "pointer", width: "100%" }}
+                            className="btn-primary w-full py-2 text-sm font-medium hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? "Loading..." : "Log In"}
                         </button>
@@ -149,19 +155,25 @@ export default function LoginPage() {
                 )}
 
                 {require2fa && (
-                    <div style={{ border: "1px solid #ccc", padding: "20px", marginBottom: "20px", maxWidth: "400px", margin: "50px auto" }}>
-                        <h2>Two-Factor Auth</h2>
-                        <p>Enter your 2FA code</p>
-                        <input
-                            type="text"
-                            ref={twoFactor}
-                            placeholder="2FA Code"
-                            style={{ display: "block", marginBottom: "10px", padding: "8px", width: "100%", boxSizing: "border-box" }}
-                        />
+                    <div className="card p-8 space-y-6 fade-in">
+                        <div>
+                            <h1 className="text-2xl font-semibold mb-2">Two-Factor Authentication</h1>
+                            <p className="text-sm muted">Enter your 2FA code</p>
+                        </div>
+
+                        <div>
+                            <input
+                                type="text"
+                                ref={twoFactor}
+                                placeholder="2FA Code"
+                                className="input w-full px-4 py-2 text-sm"
+                            />
+                        </div>
+
                         <button
                             onClick={handleLogin}
                             disabled={loading}
-                            style={{ padding: "10px 20px", cursor: "pointer", width: "100%" }}
+                            className="btn-primary w-full py-2 text-sm font-medium hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? "Loading..." : "Confirm 2FA"}
                         </button>

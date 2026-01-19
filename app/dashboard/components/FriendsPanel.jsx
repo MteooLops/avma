@@ -46,7 +46,7 @@ export default function FriendsPanel({ friends, selectedFriend, setSelectedFrien
                     </div>
                 </div>
 
-                <div className="card p-3" style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                <div className="card sidebar p-3" style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
                     {/* Playing section */}
                     <div className="flex items-center justify-between">
                         <div className="small muted">Playing</div>

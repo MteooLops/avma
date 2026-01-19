@@ -9,20 +9,44 @@ export async function GET(req) {
         let friendsResponse = await vrchat.getFriends();
         let friends = friendsResponse?.data || friendsResponse || [];
 
+        let offlineFriends = [];
 
-        // TODO: Deslimitar el numero de amigos que salen de resultado, por defecto esta limitado a 100
-        let offlineFriendsResponse = await vrchat.getFriends({
-            query: {
-                n: inf,
-                offline: true,
-            }
-        })
-        let offlineFriends = offlineFriendsResponse?.data || offlineFriendsResponse || [];
+        let lastOfflineFriendLength = 0;
+        while (true) {
+            /*if (lastOfflineFriendLength > 0) { 
+                // TODO: Deslimitar el numero de amigos que salen de resultado, por defecto esta limitado a 100
+                let offlineFriendsResponse = await vrchat.getFriends({
+                    query: {
+                        offset: lastOfflineFriendLength,
+                        n: 60,
+                        offline: true,
+                    }
+                })
+                let offlineFriends = offlineFriendsResponse?.data || offlineFriendsResponse || [];
 
+                lastOfflineFriendLength = offlineFriends.length;
+            } */
+            let offlineFriendsResponse = await vrchat.getFriends({
+                query: {
+                    offset: lastOfflineFriendLength,
+                    n: 60,
+                    offline: true,
+                }
+            })
+            let offlineFriendsData = offlineFriendsResponse?.data || offlineFriendsResponse || [];
+
+            if (offlineFriendsData.length == 0) break;
+
+            offlineFriends = offlineFriends.concat(offlineFriendsData);
+            lastOfflineFriendLength += offlineFriendsData.length;
+        }
+        
         let webFriends = friends.filter(friend => friend.platform == 'web')
         let onlineFriends = friends.filter(friend => friend.location != 'offline')
 
         let totalCount = friends.length + offlineFriends.length
+
+        console.log(offlineFriends)
 
         return NextResponse.json({ success: true, onlineFriends, webFriends, offlineFriends, totalCount });
     } catch (error) {
