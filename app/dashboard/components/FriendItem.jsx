@@ -29,12 +29,10 @@ export default function FriendItem({ f, selectedFriend, onSelect, primaryLabel =
         }
     })();
 
-    console.log(f.status)
-
     return (
         <div key={f.id} id={`f-${f.id}`} className={`flex items-start justify-between p-2 rounded-md ${selectedFriend === f.id ? 'shadow-[inset_0_0_0_2px_rgba(86,96,106,0.12)]' : ''}`} style={{ gap: 12 }}>
             <div className="flex items-start gap-3">
-                <div className="avatar">{((f.displayName || f.username || '?').charAt(0) || 'U').toUpperCase()}</div>
+                <img src={f.imageUrl} className="avatar"></img>
                 <div style={{ minWidth: 0 }}>
                     <div className="font-medium">{f.displayName || f.username}</div>
                     <div className="small muted flex items-center gap-[5px]">

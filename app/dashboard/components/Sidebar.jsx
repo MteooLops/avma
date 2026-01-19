@@ -5,12 +5,14 @@ export default function Sidebar({ user }) {
     const userInitial = (user?.displayName || user?.username || '?').charAt(0).toUpperCase();
     const userLabel = user?.displayName || user?.username || 'User';
 
+    console.log(user);
+
     return (
         <aside className="fixed top-0 left-0 h-screen sidebar p-3">
             <div className="card p-3 fade-in">
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                        <div className="avatar">{userInitial}</div>
+                        <img src={user.userIcon || user.currentAvatarImageUrl} className="avatar"></img>
                         <div className="small muted" aria-label="Current user">{userLabel}</div>
                     </div>
                 </div>

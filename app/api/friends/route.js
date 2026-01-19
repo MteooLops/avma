@@ -46,7 +46,7 @@ export async function GET(req) {
 
         let totalCount = friends.length + offlineFriends.length
 
-        console.log(offlineFriends)
+        console.log(onlineFriends)
 
         return NextResponse.json({ success: true, onlineFriends, webFriends, offlineFriends, totalCount });
     } catch (error) {
