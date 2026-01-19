@@ -7,6 +7,7 @@ import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import QuickLaunch from "./components/QuickLaunch";
 import WorldsSearch from "./components/WorldsSearch";
+import Avatars from "./components/Avatars";
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -103,15 +104,23 @@ export default function DashboardPage() {
             />
 
             {/* Main content - add right padding for friends panel */}
-            <div className="pl-28 lg:pl-64" style={{ paddingRight: 416 }}>
+            <div className="pl-28 lg:pl-64 flex flex-col" style={{ paddingRight: 416, height: "100vh", overflow: "hidden" }}>
                 <Header status={status} onLogout={handleLogout} loading={loading} />
 
-                <main className="p-6 space-y-6">
-                    <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <QuickLaunch userId={user.id} onLaunch={handleQuickLaunch} onRefresh={loadFriends} loading={loading} />
+                <main className="flex flex-col gap-4 flex-1 p-6 overflow-hidden w-full h-full">
+                    <div className="flex flex-row gap-4 flex-1 min-h-0">
+                        <div className="flex-1 min-w-0">
+                            <QuickLaunch userId={user.id} onLaunch={handleQuickLaunch} onRefresh={loadFriends} loading={loading} />
+                        </div>
 
+                        <div className="flex-1 min-w-0">
+                            <Avatars user={user} />
+                        </div>
+                    </div>
+
+                    <div className="flex-1 min-w-0 w-full">
                         <WorldsSearch />
-                    </section>
+                    </div>
                 </main>
             </div>
         </div>

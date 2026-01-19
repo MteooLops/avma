@@ -28,6 +28,7 @@ export default function FriendItem({ f, selectedFriend, onSelect, primaryLabel =
                 return 'status-online';
         }
     })();
+    console.log(f);
 
     return (
         <div key={f.id} id={`f-${f.id}`} className={`flex items-start justify-between p-2 rounded-md ${selectedFriend === f.id ? 'shadow-[inset_0_0_0_2px_rgba(86,96,106,0.12)]' : ''}`} style={{ gap: 12 }}>
@@ -37,6 +38,7 @@ export default function FriendItem({ f, selectedFriend, onSelect, primaryLabel =
                     <div className="font-medium">{f.displayName || f.username}</div>
                     <div className="small muted flex items-center gap-[5px]">
                         <span className={`status-dot ${statusTone}`} aria-hidden="true" />
+                        {/* TODO: hacer una forma de traducir la instancia de un amigo desde una id de mundo a el nombre del mundo (Posiblemente se pueda hacer con la api de vrchat) */}
                         <span>{f.statusDescription || f.status} | {f.location || ''}</span>
                     </div>
                 </div>
