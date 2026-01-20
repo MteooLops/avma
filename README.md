@@ -1,2 +1,2 @@
 ## AVMA
-  This web is on a (test) [https://avma-seven.vercel.app/]
+[Here!](https://avma-seven.vercel.app/)
