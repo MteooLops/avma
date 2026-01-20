@@ -52,7 +52,9 @@ export default function DashboardPage() {
             const data = await res.json();
 
             if (res.ok && data) {
-                setFriends(data)
+                setFriends(data);
+                // Cache friends data for profile pages
+                localStorage.setItem('vrchat_friends', JSON.stringify(data));
             } else {
                 console.error("Error loading friends:", data?.error || data);
             }

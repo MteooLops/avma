@@ -40,13 +40,12 @@ export async function GET(req) {
             offlineFriends = offlineFriends.concat(offlineFriendsData);
             lastOfflineFriendLength += offlineFriendsData.length;
         }
-        
+
         let webFriends = friends.filter(friend => friend.platform == 'web')
         let onlineFriends = friends.filter(friend => friend.location != 'offline')
 
         let totalCount = friends.length + offlineFriends.length
 
-        console.log(onlineFriends)
 
         return NextResponse.json({ success: true, onlineFriends, webFriends, offlineFriends, totalCount });
     } catch (error) {

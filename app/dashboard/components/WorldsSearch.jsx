@@ -36,8 +36,6 @@ export default function WorldsSearch() {
         }
     };
 
-    console.log(worlds);
-
     return (
         <div className="worlds-search-card p-4 fade-in">
             <h2 className="font-semibold">Search worlds</h2>

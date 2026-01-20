@@ -33,10 +33,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.02);
   border-radius: var(--radius-md);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
-  height: fit-content;
-  width: fit-content;
   overflow-x: auto;
-  
 }
 
 .worlds-search-card {
@@ -282,7 +279,7 @@ body {
 
 /* Sidebar helpers */
 .sidebar {
-  min-width: 325px;
+  min-width: 72px;
 }
 
 .sidebar .nav-item {
@@ -307,6 +304,10 @@ body {
 
 .friends-collapsed .avatar-sm {
   cursor: pointer;
+}
+
+.friends:hover {
+  background: rgba(255, 255, 255, 0.01);
 }
 
 /* Small helpers */

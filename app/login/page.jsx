@@ -78,8 +78,6 @@ export default function LoginPage() {
                 return;
             }
 
-            console.log("Auth response status:", res.status, "data:", data);
-
             if (res.ok) {
                 setRequire2fa(false);
                 setStoredUsername("");
