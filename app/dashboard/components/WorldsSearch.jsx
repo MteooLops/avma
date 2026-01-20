@@ -57,10 +57,10 @@ export default function WorldsSearch() {
 
                 {status && <div className="small muted">{status}</div>}
 
-                <div className="flex flex-row gap-3 mt-2 overflow-x-auto pb-2">
+                <div className="grid grid-cols-1 gap-3 mt-2">
                     {worlds.length > 0 ? (
                         worlds.map((world) => (
-                            <div key={world.id} className="world-result-card flex-shrink-0" role="article" aria-label={`World ${world.name}`}>
+                            <div key={world.id} className="world-result-card" role="article" aria-label={`World ${world.name}`}>
                                 <img src={world.imageUrl} alt={world.name} className="world-result-image" />
                                 <div className="p-3">
                                     <div className="font-medium text-sm">{world.name}</div>

@@ -3,10 +3,8 @@ import { NextResponse } from "next/server";
 import KeyvFile from "keyv-file";
 import path from "path";
 
-// Variable global para guardar la instancia de VRChat durante la sesión
 let vrchatInstance = null;
 
-// Store persistente para sesiones (cookies / tokens)
 const keyvStore = new KeyvFile({
     filename: path.join(process.cwd(), ".vrchat-session.json"),
 });
@@ -34,18 +32,49 @@ export async function POST(req) {
             );
         }
 
-        // Crea una nueva instancia de VRChat con la configuración correcta (usa sesión persistente)
+        if (twoFactorCode) {
+            try {
+                const vrchat = createVRChatClient();
+                const loginResult = await vrchat.login({
+                    username,
+                    password,
+                    twoFactorCode: async () => twoFactorCode,
+                    throwOnError: true,
+                });
+
+                const currentUserResponse = await vrchat.getCurrentUser({ throwOnError: true });
+                const user = currentUserResponse?.data || currentUserResponse;
+
+                if (!user) {
+                    return NextResponse.json(
+                        { message: "No se retornaron datos del usuario" },
+                        { status: 401 }
+                    );
+                }
+
+                vrchatInstance = vrchat;
+
+                return NextResponse.json({ success: true, user }, { status: 200 });
+            } catch (loginError) {
+                console.error("VRChat 2FA error:", loginError);
+                return NextResponse.json(
+                    { message: "Código 2FA inválido" },
+                    { status: 401 }
+                );
+            }
+        }
+
         const vrchat = createVRChatClient();
 
-        // Intenta hacer login con las credenciales
         let loginResult;
         try {
-            loginResult = await vrchat.login({
+            const loginOptions = {
                 username,
                 password,
-                twoFactorCode: twoFactorCode ? () => twoFactorCode : undefined,
                 throwOnError: true,
-            })
+            };
+
+            loginResult = await vrchat.login(loginOptions);
         } catch (loginError) {
             console.error("VRChat login error:", loginError);
             const message = loginError?.message || "Authentication failed";
@@ -55,21 +84,19 @@ export async function POST(req) {
                 message.toLowerCase().includes("2fa")
             );
 
-            // Si se requiere 2FA y no se envió código, pedirlo sin marcar error de credenciales
             if (needs2fa && !twoFactorCode) {
                 return NextResponse.json(
-                    { error: "2FA code required", require2fa: true },
+                    { message: "Se requiere autenticación de dos factores", requiresTwoFactor: true },
                     { status: 401 }
                 );
             }
 
             return NextResponse.json(
-                { error: "Invalid credentials", require2fa: false },
+                { message: "Credenciales inválidas", requiresTwoFactor: false },
                 { status: 401 }
             );
         }
 
-        // Ahora obtén los datos del usuario autenticado
         let user;
         try {
             const currentUserResponse = await vrchat.getCurrentUser({ throwOnError: true });
@@ -77,38 +104,34 @@ export async function POST(req) {
         } catch (getUserError) {
             console.error("Error getting current user:", getUserError);
             return NextResponse.json(
-                { error: "Failed to retrieve user data after login" },
+                { message: "Error al obtener datos del usuario después del login" },
                 { status: 401 }
             );
         }
 
         if (!user) {
             return NextResponse.json(
-                { error: "No user data returned" },
+                { message: "No se retornaron datos del usuario" },
                 { status: 401 }
             );
         }
 
-
-        // Guarda la instancia para usarla en otras rutas
         vrchatInstance = vrchat;
 
-        return NextResponse.json({ success: true, user });
+        return NextResponse.json({ success: true, user }, { status: 200 });
     } catch (error) {
         console.error("Unexpected auth error:", error);
         return NextResponse.json(
-            { error: error?.message || "Internal server error" },
+            { message: error?.message || "Error interno del servidor" },
             { status: 500 }
         );
     }
 }
 
-// Exporta la instancia para que otras rutas puedan usarla
 export function getVRChatInstance() {
     return vrchatInstance;
 }
 
-// Exporta un cliente nuevo que reutiliza la sesión persistente
 export function getVRChatClient() {
     return createVRChatClient();
 }
@@ -120,34 +143,31 @@ export async function GET() {
         const currentUserResponse = await vrchat.getCurrentUser({ throwOnError: true });
         const user = currentUserResponse?.data || currentUserResponse;
 
-        // Si venimos de sesión persistida y no se había cargado en memoria, la guardamos
         vrchatInstance = vrchat;
 
-        return NextResponse.json({ success: true, user });
+        return NextResponse.json({ success: true, user }, { status: 200 });
     } catch (error) {
         if (error instanceof VRChatError && error.unauthorized) {
-            return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+            return NextResponse.json({ message: "No autenticado" }, { status: 401 });
         }
-        return NextResponse.json({ error: error?.message || "Failed to get current user" }, { status: 400 });
+        return NextResponse.json({ message: error?.message || "Error al obtener usuario actual" }, { status: 400 });
     }
 }
 
 // DELETE: limpia la sesión y cierra la instancia
 export async function DELETE() {
     try {
-        // Limpia la instancia en memoria
         vrchatInstance = null;
 
-        // Limpia el store persistente
         try {
             await keyvStore.clear();
         } catch (clearError) {
             console.error("Error clearing keyv store:", clearError);
         }
 
-        return NextResponse.json({ success: true, message: "Sesión cerrada" });
+        return NextResponse.json({ success: true, message: "Sesión cerrada" }, { status: 200 });
     } catch (error) {
         console.error("Error deleting session:", error);
-        return NextResponse.json({ error: "Failed to logout" }, { status: 500 });
+        return NextResponse.json({ message: "Error al cerrar sesión" }, { status: 500 });
     }
 }

@@ -32,84 +32,88 @@ export default function LoginPage() {
         checkSession();
     }, [router]);
 
-    const handleLogin = async () => {
+    const handleLoginFirstStep = async () => {
+        const user = username?.current?.value || '';
+        const pass = password.current.value || '';
+
+        if (!user || !pass) {
+            setStatus("Por favor completa usuario y contraseña");
+            return;
+        }
+
         try {
             setLoading(true);
-            if (!require2fa && twoFactor.current) {
-                twoFactor.current.value = "";
-            }
-            const user_input = username.current?.value?.trim();
-            const pass_input = password.current?.value || "";
-            const two_factor_input = twoFactor.current?.value?.trim();
-
-            if (!require2fa) {
-                if (!user_input || !pass_input.trim()) {
-                    setStatus("Complete email/username and password");
-                    return;
-                }
-                setStoredUsername(user_input);
-                setStoredPassword(pass_input);
-            }
-
-            if (require2fa) {
-                if (!two_factor_input) {
-                    setStatus("Enter the 2FA code");
-                    return;
-                }
-            }
-
             const res = await fetch("/api/auth", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    username: require2fa ? storedUsername : user_input,
-                    password: require2fa ? storedPassword : pass_input,
-                    twoFactorCode: require2fa ? (two_factor_input || undefined) : undefined,
+                    username: user,
+                    password: pass
                 })
             });
 
-            const text = await res.text();
-            let data;
-            try {
-                data = JSON.parse(text);
-            } catch (e) {
-                console.error("Invalid response:", text);
-                setStatus("Invalid server response");
-                return;
-            }
+            const data = await res.json();
 
             if (res.ok) {
-                setRequire2fa(false);
-                setStoredUsername("");
-                setStoredPassword("");
-                if (username.current) username.current.value = "";
-                if (password.current) password.current.value = "";
-                if (twoFactor.current) twoFactor.current.value = "";
-                setStatus("Login successful");
+                setStoredUsername(user);
+                setStoredPassword(pass);
                 localStorage.setItem("hasVRChatSession", "true");
+                setStatus("");
                 router.push("/dashboard");
+            } else if (data.requiresTwoFactor) {
+                setRequire2fa(true);
+                setStoredUsername(user);
+                setStoredPassword(pass);
+                setStatus("");
             } else {
-                const needs2fa = data?.require2fa;
-                const looksLike2fa = (!needs2fa && res.status === 401 && !require2fa);
-
-                if (needs2fa || looksLike2fa) {
-                    setRequire2fa(true);
-                    setStatus("Enter the 2FA code and confirm");
-                    return;
-                }
-
-                console.error("Login failed:", data.error);
-                setStatus(data?.error || "Authentication error");
-                // Clear password on failed attempt
-                if (password.current) password.current.value = "";
+                setStatus(data.message || "Login fallido");
             }
-        } catch (error) {
-            console.error("Fetch error:", error);
-            setStatus("Connection error: " + error.message);
+        } catch (e) {
+            console.error(e);
+            setStatus("Error en el servidor");
         } finally {
             setLoading(false);
         }
     };
+
+    const handleLoginSecondStep = async () => {
+        const code = twoFactor.current.value;
+
+        if (!code) {
+            setStatus("Por favor ingresa el código 2FA");
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const res = await fetch("/api/auth", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: storedUsername,
+                    password: storedPassword,
+                    twoFactorCode: code
+                })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                localStorage.setItem("hasVRChatSession", "true");
+                setStatus("");
+                router.push("/dashboard");
+            } else {
+                setStatus(data.message || "Código 2FA inválido");
+            }
+        } catch (e) {
+            console.error(e);
+            setStatus("Error validando 2FA");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleLogin = require2fa ? handleLoginSecondStep : handleLoginFirstStep;
 
     return (
         <div className="min-h-screen flex items-center justify-center text-gray-200 p-4">
@@ -123,8 +127,8 @@ export default function LoginPage() {
                 {!require2fa && (
                     <div className="card p-8 space-y-6 fade-in">
                         <div>
-                            <h1 className="text-2xl font-semibold mb-2">VRChat Login</h1>
-                            <p className="text-sm muted">Enter your VRChat credentials</p>
+                            <h1 className="text-2xl font-semibold mb-2">AVMA</h1>
+                            <p className="text-sm muted">Log In with your VRChat Credentials.</p>
                         </div>
 
                         <div className="space-y-4">

@@ -6,6 +6,7 @@ export async function GET(req) {
     try {
         const vrchat = getVRChatInstance() || getVRChatClient();
 
+        // TODO: lo mismo que ha hecho reinadorojo para offlineFriends pero para el online XD
         let friendsResponse = await vrchat.getFriends();
         let friends = friendsResponse?.data || friendsResponse || [];
 
@@ -13,19 +14,6 @@ export async function GET(req) {
 
         let lastOfflineFriendLength = 0;
         while (true) {
-            /*if (lastOfflineFriendLength > 0) { 
-                // TODO: Deslimitar el numero de amigos que salen de resultado, por defecto esta limitado a 100
-                let offlineFriendsResponse = await vrchat.getFriends({
-                    query: {
-                        offset: lastOfflineFriendLength,
-                        n: 60,
-                        offline: true,
-                    }
-                })
-                let offlineFriends = offlineFriendsResponse?.data || offlineFriendsResponse || [];
-
-                lastOfflineFriendLength = offlineFriends.length;
-            } */
             let offlineFriendsResponse = await vrchat.getFriends({
                 query: {
                     offset: lastOfflineFriendLength,
