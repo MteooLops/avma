@@ -1,32 +1,37 @@
 'use client';
-import { useRef, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import "../globals.css";
+import FriendsPanel from "./components/FriendsPanel";
+import Sidebar from "./components/Sidebar";
+import Header from "./components/Header";
+import QuickLaunch from "./components/QuickLaunch";
+import WorldsSearch from "./components/WorldsSearch";
+import Avatars from "./components/Avatars";
 
 export default function DashboardPage() {
     const router = useRouter();
     const [user, setUser] = useState(null);
     const [friends, setFriends] = useState([]);
-    const [worlds, setWorlds] = useState([]);
-    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedFriend, setSelectedFriend] = useState(null);
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState("");
 
-    // Check session and load user + friends
+    // friends panel state
+    const [onlineOpen, setOnlineOpen] = useState(true);
+    const [webOpen, setWebOpen] = useState(false);
+    const [offlineOpen, setOfflineOpen] = useState(false);
+
     useEffect(() => {
         const initializeDashboard = async () => {
             const hasSession = localStorage.getItem("hasVRChatSession");
-            if (!hasSession) {
-                router.push("/login");
-                return;
-            }
+            if (!hasSession) return router.push("/login");
 
             try {
                 const res = await fetch("/api/auth", { method: "GET" });
                 if (!res.ok) {
                     localStorage.removeItem("hasVRChatSession");
-                    router.push("/login");
-                    return;
+                    return router.push("/login");
                 }
                 const data = await res.json();
                 if (data?.user) {
@@ -43,45 +48,18 @@ export default function DashboardPage() {
 
     const loadFriends = async () => {
         try {
-            const res = await fetch("/api/friends", {
-                method: "GET",
-                headers: { "Content-Type": "application/json" }
-            });
+            const res = await fetch("/api/friends", { method: "GET", headers: { "Content-Type": "application/json" } });
+            const data = await res.json();
 
-            const text = await res.text();
-            let data = JSON.parse(text);
-
-            if (res.ok) {
-                setFriends(data.friends || []);
+            if (res.ok && data) {
+                setFriends(data);
+                // Cache friends data for profile pages
+                localStorage.setItem('vrchat_friends', JSON.stringify(data));
             } else {
-                console.error("Error loading friends:", data.error);
+                console.error("Error loading friends:", data?.error || data);
             }
         } catch (error) {
             console.error("Error fetching friends:", error);
-        }
-    };
-
-    const handleGetFriends = async () => {
-        try {
-            setLoading(true);
-            const res = await fetch("/api/friends", {
-                method: "GET",
-                headers: { "Content-Type": "application/json" }
-            });
-
-            const text = await res.text();
-            let data = JSON.parse(text);
-
-            if (res.ok) {
-                setFriends(data.friends || []);
-                setStatus("Friends loaded: " + (data.friends?.length || 0));
-            } else {
-                setStatus(data.error || "Error loading friends");
-            }
-        } catch (error) {
-            setStatus("Error loading friends: " + error.message);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -102,108 +80,51 @@ export default function DashboardPage() {
         }
     };
 
-    const handleSearchWorlds = async () => {
-        if (!searchTerm.trim()) {
-            setStatus("Enter a search term");
-            return;
-        }
-
-        try {
-            setLoading(true);
-            const res = await fetch(`/api/worlds?search=${encodeURIComponent(searchTerm)}`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json" }
-            });
-
-            const text = await res.text();
-            let data = JSON.parse(text);
-
-            if (res.ok) {
-                setWorlds(data.worlds || []);
-                setStatus("Worlds found: " + (data.worlds?.length || 0));
-            } else {
-                setStatus(data.error || "Error searching worlds");
-            }
-        } catch (error) {
-            setStatus("Error searching worlds: " + error.message);
-        } finally {
-            setLoading(false);
-        }
+    const handleQuickLaunch = () => {
+        setStatus("Launching VRChat...");
+        setTimeout(() => setStatus("Ready to play"), 1200);
     };
 
-    if (!user) {
-        return <div style={{ padding: "20px" }}>Loading...</div>;
-    }
+    if (!user) return <div className="min-h-screen flex items-center justify-center center">Loading...</div>;
 
     return (
-        <div style={{ padding: "20px", fontFamily: "Arial" }}>
-            <main>
-                {status && (
-                    <div style={{ marginBottom: "12px", padding: "10px", background: "#eef2ff", border: "1px solid #cfd8ff" }}>
-                        {status}
+        <div className="min-h-screen text-gray-200">
+            {/* Left sidebar (component) */}
+            <Sidebar user={user} />
+
+            {/* Right friends panel (component) */}
+            <FriendsPanel
+                friends={friends}
+                selectedFriend={selectedFriend}
+                setSelectedFriend={setSelectedFriend}
+                onlineOpen={onlineOpen}
+                setOnlineOpen={setOnlineOpen}
+                webOpen={webOpen}
+                setWebOpen={setWebOpen}
+                offlineOpen={offlineOpen}
+                setOfflineOpen={setOfflineOpen}
+            />
+
+            {/* Main content - add right padding for friends panel */}
+            <div className="pl-28 lg:pl-64 flex flex-col" style={{ paddingRight: 416, height: "100vh", overflow: "hidden" }}>
+                <Header status={status} onLogout={handleLogout} loading={loading} />
+
+                <main className="flex flex-col gap-4 flex-1 p-6 overflow-hidden w-full h-full">
+                    <div className="flex flex-row gap-4 flex-1 min-h-0">
+                        <div className="flex-1 min-w-0">
+                            <QuickLaunch userId={user.id} onLaunch={handleQuickLaunch} onRefresh={loadFriends} loading={loading} />
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                            <Avatars user={user} />
+                        </div>
                     </div>
-                )}
 
-                {/* USER SECTION */}
-                <div className="header">
-                    <h2>Welcome, {user.displayName || user.username}</h2>
-                    <p>ID: {user.id}</p>
-                    <button
-                        onClick={handleLogout}
-                        style={{ padding: "10px 20px", cursor: "pointer", background: "red", color: "white" }}
-                    >
-                        Logout
-                    </button>
-                </div>
-
-                {/* FRIENDS SECTION */}
-                <div style={{ border: "1px solid #ccc", padding: "20px", marginBottom: "20px" }}>
-                    <h2>My Friends</h2>
-                    {friends.length > 0 ? (
-                        <ul>
-                            {friends.map((friend) => (
-                                <li key={friend.id} style={{ marginBottom: "5px" }}>
-                                    <strong>{friend.displayName}</strong> - {friend.status || "Offline"}
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p>No friends or not loaded</p>
-                    )}
-                </div>
-
-                {/* WORLD SEARCH SECTION */}
-                <div style={{ border: "1px solid #ccc", padding: "20px", marginBottom: "20px" }}>
-                    <h2>Search Worlds</h2>
-                    <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="E.g.: Void, Black Cat, Meowww"
-                        style={{ display: "block", marginBottom: "10px", padding: "8px", width: "300px" }}
-                    />
-                    <button
-                        onClick={handleSearchWorlds}
-                        disabled={loading}
-                        style={{ padding: "10px 20px", marginBottom: "10px", cursor: "pointer" }}
-                    >
-                        {loading ? "Searching..." : "Search"}
-                    </button>
-                    {worlds.length > 0 ? (
-                        <ul>
-                            {worlds.map((world) => (
-                                <li key={world.id} style={{ marginBottom: "10px", padding: "10px", border: "1px solid #ddd" }}>
-                                    <strong>{world.name}</strong>
-                                    <p>Author: {world.authorName}</p>
-                                    <p>Players: {world.occupants}/{world.capacity}</p>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p>No worlds or not searched</p>
-                    )}
-                </div>
-            </main>
+                    <div className="flex-1 min-w-0 w-full">
+                        <WorldsSearch />
+                    </div>
+                </main>
+            </div>
         </div>
     );
 }

@@ -34,8 +34,6 @@ export async function POST(req) {
             );
         }
 
-        console.log("Attempting login with username:", username);
-
         // Crea una nueva instancia de VRChat con la configuración correcta (usa sesión persistente)
         const vrchat = createVRChatClient();
 
@@ -48,7 +46,6 @@ export async function POST(req) {
                 twoFactorCode: twoFactorCode ? () => twoFactorCode : undefined,
                 throwOnError: true,
             })
-            console.log("Login result:", loginResult);
         } catch (loginError) {
             console.error("VRChat login error:", loginError);
             const message = loginError?.message || "Authentication failed";
@@ -77,7 +74,6 @@ export async function POST(req) {
         try {
             const currentUserResponse = await vrchat.getCurrentUser({ throwOnError: true });
             user = currentUserResponse?.data || currentUserResponse;
-            console.log("Current user:", user);
         } catch (getUserError) {
             console.error("Error getting current user:", getUserError);
             return NextResponse.json(
@@ -93,7 +89,6 @@ export async function POST(req) {
             );
         }
 
-        console.log("Login successful for user:", user.displayName || user.username || user.id);
 
         // Guarda la instancia para usarla en otras rutas
         vrchatInstance = vrchat;
