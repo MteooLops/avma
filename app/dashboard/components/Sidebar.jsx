@@ -1,9 +1,12 @@
 'use client';
 import React from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+
 
 export default function Sidebar({ user, onLogout, loading }) {
     const userLabel = user?.displayName || user?.username || 'User';
+    const router = useRouter();
 
     const navItems = [
         { label: 'Home', href: '/dashboard', icon: '/icons/home.svg' },
@@ -11,26 +14,34 @@ export default function Sidebar({ user, onLogout, loading }) {
         { label: 'Settings', href: '/dashboard/settings', icon: '/icons/settings.svg' },
     ];
 
-    console.log(user)
+    const handleDashboardMe = () => {
+        const hasSession = localStorage.getItem("hasVRChatSession");
+        if (hasSession) {
+            router.push("/dashboard/me");
+        } else {
+            router.push("/login");
+        }
+    }
 
     return (
         <aside className="fixed top-0 left-0 h-screen w-64 sidebar p-3">
-            {/* User card */}
-            <div className="card p-3 fade-in w-full">
-                <div className="flex items-center gap-3">
-                    <img
-                        src={user.userIcon || user.currentAvatarImageUrl}
-                        className="avatar w-12 h-12 rounded-lg flex-shrink-0"
-                        alt={userLabel}
-                    />
-                    <div className="min-w-0 flex-1">
-                        <div className="text-sm font-semibold truncate" title={userLabel}>
-                            {userLabel}
+            <button onClick={handleDashboardMe}>{/* User card */}
+                <div className="card p-3 fade-in w-full">
+                    <div className="flex items-center gap-3">
+                        <img
+                            src={user.userIcon || user.currentAvatarImageUrl}
+                            className="avatar w-12 h-12 rounded-lg flex-shrink-0"
+                            alt={userLabel}
+                        />
+                        <div className="min-w-0 flex-1">
+                            <div className="text-sm font-semibold truncate" title={userLabel}>
+                                {userLabel}
+                            </div>
+                            <div className="text-xs muted truncate" title={user.statusDescription}>{user.statusDescription}</div>
                         </div>
-                        <div className="text-xs muted truncate" title={user.statusDescription}>{user.statusDescription}</div>
                     </div>
                 </div>
-            </div>
+            </button>
 
             {/* Navigation */}
             <nav className="mt-4 space-y-2">
@@ -63,6 +74,6 @@ export default function Sidebar({ user, onLogout, loading }) {
                     {loading ? 'Signing out...' : 'Sign out'}
                 </button>
             </div>
-        </aside>
+        </aside >
     );
 }

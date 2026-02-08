@@ -2,18 +2,36 @@ import { VRChat, VRChatError } from "vrchat";
 import { NextResponse } from "next/server";
 import KeyvFile from "keyv-file";
 import path from "path";
+import os from "os";
 
 let vrchatInstance = null;
 
+const CLIENT_COOKIE_NAME = "vrchat_session";
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+
 const keyvStore = new KeyvFile({
-    filename: path.join(process.cwd(), ".vrchat-session.json"),
+    // Use a temp location that is writable in most runtimes (Vercel / serverless)
+    filename: path.join(os.tmpdir(), "vrchat-session.json"),
 });
+
+function setClientSessionCookie(response, value, options = {}) {
+    response.cookies.set({
+        name: CLIENT_COOKIE_NAME,
+        value,
+        httpOnly: true,
+        sameSite: "lax",
+        secure: true,
+        path: "/",
+        maxAge: options.maxAge ?? COOKIE_MAX_AGE,
+    });
+    return response;
+}
 
 function createVRChatClient() {
     return new VRChat({
         application: {
             name: "AVMA",
-            version: "0.0.1",
+            version: "0.2.1",
             contact: "vrmteoo@gmail.com",
         },
         baseUrl: "https://api.vrchat.cloud/api/1",
@@ -54,7 +72,8 @@ export async function POST(req) {
 
                 vrchatInstance = vrchat;
 
-                return NextResponse.json({ success: true, user }, { status: 200 });
+                const res = NextResponse.json({ success: true, user }, { status: 200 });
+                return setClientSessionCookie(res, "1");
             } catch (loginError) {
                 console.error("VRChat 2FA error:", loginError);
                 return NextResponse.json(
@@ -118,7 +137,8 @@ export async function POST(req) {
 
         vrchatInstance = vrchat;
 
-        return NextResponse.json({ success: true, user }, { status: 200 });
+        const res = NextResponse.json({ success: true, user }, { status: 200 });
+        return setClientSessionCookie(res, "1");
     } catch (error) {
         console.error("Unexpected auth error:", error);
         return NextResponse.json(
@@ -165,7 +185,9 @@ export async function DELETE() {
             console.error("Error clearing keyv store:", clearError);
         }
 
-        return NextResponse.json({ success: true, message: "Sesión cerrada" }, { status: 200 });
+        const res = NextResponse.json({ success: true, message: "Sesión cerrada" }, { status: 200 });
+        // Clear client cookie
+        return setClientSessionCookie(res, "", { maxAge: 0 });
     } catch (error) {
         console.error("Error deleting session:", error);
         return NextResponse.json({ message: "Error al cerrar sesión" }, { status: 500 });

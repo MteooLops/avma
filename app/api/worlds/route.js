@@ -5,6 +5,28 @@ export async function GET(req) {
     try {
         const { searchParams } = new URL(req.url);
         const search = searchParams.get("search");
+        const worldId = searchParams.get("id");
+
+
+        // Si se proporciona un ID, obtén los detalles del mundo
+        if (worldId) {
+            // Extraer solo el ID base del mundo (antes del ':')
+            const cleanWorldId = worldId.split(':')[0];
+
+            const vrchat = getVRChatInstance() || getVRChatClient();
+            const worldResponse = await vrchat.getWorld({ path: { worldId: cleanWorldId } });
+            let world = worldResponse?.data || worldResponse;
+
+            // Convertir BigInt a string para poder serializar
+            world = JSON.parse(JSON.stringify(world, (key, value) =>
+                typeof value === 'bigint' ? value.toString() : value
+            ));
+
+            return NextResponse.json({
+                success: true,
+                world: world
+            });
+        }
 
         if (!search) {
             return NextResponse.json(

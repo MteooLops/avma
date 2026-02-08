@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import '../../../globals.css';
 import Sidebar from '../../components/Sidebar';
 import FriendsPanel from '../../components/FriendsPanel';
-import Header from '../../components/Header';
 import { normalizeFriendStatus, getStatusTone } from '../../utils/friendUtils';
 
 export default function ProfilePage() {
@@ -171,8 +170,6 @@ export default function ProfilePage() {
 
             {/* Main content - add right padding for friends panel */}
             <div className="pl-28 lg:pl-64" style={{ paddingRight: 416 }}>
-                <Header status={status} onLogout={handleLogout} loading={loading} />
-
                 <main className="p-6 space-y-6 pb-12">
                     {/* Header with back button */}
                     <div>

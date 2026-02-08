@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "../../globals.css";
 import Sidebar from "../components/Sidebar";
-import Header from "../components/Header";
 import { normalizeFriendStatus, getStatusTone } from "../utils/friendUtils";
 
 export default function MyProfilePage() {
@@ -103,8 +102,6 @@ export default function MyProfilePage() {
             <Sidebar user={user} />
 
             <div className="pl-28 lg:pl-64" style={{ paddingRight: 64 }}>
-                <Header status={status} onLogout={handleLogout} loading={loading} />
-
                 <main className="p-6 space-y-6 pb-12">
                     {/* Hero card */}
                     <div className="card p-8" style={{ background: "linear-gradient(135deg, rgba(69,88,255,0.12), rgba(0, 255, 204, 0.08))" }}>

@@ -6,12 +6,29 @@ export async function GET(req) {
     try {
         const vrchat = getVRChatInstance() || getVRChatClient();
 
-        // TODO: lo mismo que ha hecho reinadorojo para offlineFriends pero para el online XD
-        let friendsResponse = await vrchat.getFriends();
-        let friends = friendsResponse?.data || friendsResponse || [];
-
+        let onlineFriends = [];
         let offlineFriends = [];
+        let webFriends = [];
 
+        // Fetch online friends with pagination
+        let lastOnlineFriendLength = 0;
+        while (true) {
+            let onlineFriendsResponse = await vrchat.getFriends({
+                query: {
+                    offset: lastOnlineFriendLength,
+                    n: 60,
+                    offline: false,
+                }
+            })
+            let onlineFriendsData = onlineFriendsResponse?.data || onlineFriendsResponse || [];
+
+            if (onlineFriendsData.length == 0) break;
+
+            onlineFriends = onlineFriends.concat(onlineFriendsData);
+            lastOnlineFriendLength += onlineFriendsData.length;
+        }
+
+        // Fetch offline friends with pagination
         let lastOfflineFriendLength = 0;
         while (true) {
             let offlineFriendsResponse = await vrchat.getFriends({
@@ -29,13 +46,14 @@ export async function GET(req) {
             lastOfflineFriendLength += offlineFriendsData.length;
         }
 
-        let webFriends = friends.filter(friend => friend.platform == 'web')
-        let onlineFriends = friends.filter(friend => friend.location != 'offline')
 
-        let totalCount = friends.length + offlineFriends.length
+        // Extract web friends from online friends
+        webFriends = onlineFriends.filter(friend => friend.platform == 'web')
+        let friendWorlds = onlineFriends.filter(friend => friend.location.startsWith("wrld_"))
+        let totalCount = onlineFriends.length + offlineFriends.length
 
 
-        return NextResponse.json({ success: true, onlineFriends, webFriends, offlineFriends, totalCount });
+        return NextResponse.json({ success: true, onlineFriends, webFriends, offlineFriends, totalCount, friendWorlds });
     } catch (error) {
         console.error("Get friends error:", error);
         return NextResponse.json({ error: error?.message || "Failed to fetch friends" }, { status: 400 });

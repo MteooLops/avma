@@ -5,6 +5,7 @@ export default function FriendWorlds() {
     const [friendWorlds, setFriendWorlds] = useState([]);
     const [status, setStatus] = useState('');
     const [loading, setLoading] = useState(false);
+    const [worldsDetails, setWorldsDetails] = useState({});
 
     useEffect(() => {
         loadFriendWorlds();
@@ -18,29 +19,41 @@ export default function FriendWorlds() {
             const res = await fetch("/api/friends", { method: "GET", headers: { "Content-Type": "application/json" } });
             const friends = await res.json();
 
-            if (!Array.isArray(friends)) {
-                setStatus('No friends found');
-                setFriendWorlds([]);
-                return;
+            console.log(friends)
+            // Filter friends that are in public worlds
+            const worldsList = friends.friendWorlds.reduce((acc, friend) => {
+                const existingWorld = acc.find(w => w.location === friend.location);
+                if (existingWorld) {
+                    existingWorld.friendCount++;
+                } else {
+                    acc.push({
+                        location: friend.location,
+                        friendCount: 1
+                    });
+                }
+                return acc;
+            }, []);
+
+            // Fetch details for each world
+            const detailsMap = {};
+            for (const world of worldsList) {
+                try {
+                    // Extraer solo el ID base del mundo (antes del ':')
+                    const cleanWorldId = world.location.split(':')[0];
+                    const worldRes = await fetch(`/api/worlds?id=${cleanWorldId}`);
+                    const worldData = await worldRes.json();
+
+                    console.log(worldData)
+
+                    if (worldData.success) {
+                        detailsMap[world.location] = worldData.world;
+                    }
+                } catch (err) {
+                    console.error(`Error fetching world ${world.location}:`, err);
+                }
             }
 
-            // Filter friends that are in public worlds
-            const worldsMap = {};
-            friends.forEach(friend => {
-                if (friend.location && friend.location !== "private" || "offline") {
-                    if (!worldsMap[friend.location]) {
-                        worldsMap[friend.location] = [];
-                    }
-                    worldsMap[friend.location].push(friend);
-                }
-            });
-
-            const worldsList = Object.entries(worldsMap).map(([worldId, friendsInWorld]) => ({
-                worldId,
-                friendCount: friendsInWorld.length,
-                friends: friendsInWorld,
-            })).sort((a, b) => b.friendCount - a.friendCount);
-
+            setWorldsDetails(detailsMap);
             setFriendWorlds(worldsList);
             setStatus(worldsList.length > 0 ? `Worlds found: ${worldsList.length}` : 'No friends in public worlds');
         } catch (error) {
@@ -79,21 +92,23 @@ export default function FriendWorlds() {
 
                 <div className="flex flex-row gap-3 mt-2 overflow-x-auto pb-2">
                     {friendWorlds.length > 0 ? (
-                        friendWorlds.map((world) => (
-                            <div key={world.worldId} className="world-result-card flex-shrink-0" role="article" aria-label={`World ${world.worldId}`}>
-                                <div className="world-result-image bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white font-bold text-2xl">
-                                    {world.friendCount}
-                                </div>
-                                <div className="p-3">
-                                    <div className="font-medium text-sm">{world.worldId}</div>
-                                    <div className="small muted">{world.friendCount} friend{world.friendCount !== 1 ? 's' : ''}</div>
-                                    <div className="small muted mt-1">
-                                        {world.friends.slice(0, 2).map(f => f.displayName || f.username).join(', ')}
-                                        {world.friendCount > 2 ? ` +${world.friendCount - 2}` : ''}
+                        friendWorlds.map((world) => {
+                            const details = worldsDetails[world.location];
+                            return (
+                                <div key={details?.name} className="world-result-card flex-shrink-0" role="article" aria-label={`World ${world.location}`}>
+                                    <div className="world-result-image bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white font-bold text-2xl">
+                                        <img src={details?.imageUrl} />
+                                    </div>
+                                    <div className="p-3">
+                                        <div className="font-medium text-sm">{details?.name || world.location}</div>
+                                        <div className="small muted">{world.friendCount} friend{world.friendCount !== 1 ? 's' : ''}</div>
+                                        <div className="small muted mt-1">
+                                            {details?.author && `by ${details.author}`}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))
+                            );
+                        })
                     ) : (
                         <div className="small muted">No friends in public worlds</div>
                     )}
